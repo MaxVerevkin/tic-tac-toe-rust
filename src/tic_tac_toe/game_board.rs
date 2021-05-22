@@ -152,11 +152,9 @@ impl GameBoard {
             let x = tile * (x + 1);
             let y = tile * (y + 1);
             img.line((x, y), (x + tile, y + tile), 1);
-            img.line((x + 1, y), (x + tile + 1, y + tile), 1);
             img.line((x, y + 1), (x + tile, y + tile + 1), 1);
 
             img.line((x + tile, y), (x, y + tile), 1);
-            img.line((x + tile + 1, y), (x + 1, y + tile), 1);
             img.line((x + tile, y + 1), (x, y + tile + 1), 1);
         };
 
@@ -167,7 +165,7 @@ impl GameBoard {
             for dx in 0..tile {
                 for dy in 0..tile {
                     let cur_r = f64::hypot(r - dx as f64, r - dy as f64);
-                    if (cur_r - r).abs() < 1.1 {
+                    if (cur_r - r + 2.).abs() <= 1. {
                         img.set(x + dx, y + dy, 1);
                     }
                 }
