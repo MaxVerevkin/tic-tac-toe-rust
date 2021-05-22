@@ -1,0 +1,3 @@
+[submodule "tiny-sixel"]
+	path = tiny-sixel
+	url = https://github.com/MaxVerevkin/tiny-sixel

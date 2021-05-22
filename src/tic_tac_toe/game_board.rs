@@ -111,6 +111,8 @@ impl GameBoard {
     }
 
     pub fn print_board(&self) {
+        print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+
         print!("   ");
         for column in 0..self.board_size {
             print!("{} ", column);
@@ -124,6 +126,69 @@ impl GameBoard {
             }
             println!();
         }
+
+        //
+
+        use std::io;
+        use tiny_sixel::{Sixel, SixelColor};
+
+        let stdout = io::stdout();
+        let mut stdout = stdout.lock();
+
+        let tile = 6 * 4;
+        let side = tile * (self.board_size + 2);
+        let mut img = Sixel::new(side, side).unwrap();
+
+        // Draw vertical lines
+        for y in 1..=(self.board_size + 1) {
+            img.line((tile, tile * y), (side - tile, tile * y), 1);
+        }
+        // Draw horizontal lines
+        for x in 1..=(self.board_size + 1) {
+            img.line((tile * x, tile), (tile * x, side - tile), 1);
+        }
+
+        let print_cross = |img: &mut Sixel, x: usize, y: usize| {
+            let x = tile * (x + 1);
+            let y = tile * (y + 1);
+            img.line((x, y), (x + tile, y + tile), 1);
+            img.line((x + 1, y), (x + tile + 1, y + tile), 1);
+            img.line((x, y + 1), (x + tile, y + tile + 1), 1);
+
+            img.line((x + tile, y), (x, y + tile), 1);
+            img.line((x + tile + 1, y), (x + 1, y + tile), 1);
+            img.line((x + tile, y + 1), (x, y + tile + 1), 1);
+        };
+
+        let print_nought = |img: &mut Sixel, x: usize, y: usize| {
+            let x = tile * (x + 1);
+            let y = tile * (y + 1);
+            let r = (tile / 2) as f64;
+            for dx in 0..tile {
+                for dy in 0..tile {
+                    let cur_r = f64::hypot(r - dx as f64, r - dy as f64);
+                    if (cur_r - r).abs() < 1.1 {
+                        img.set(x + dx, y + dy, 1);
+                    }
+                }
+            }
+        };
+
+        for x in 0..self.board_size {
+            for y in 0..self.board_size {
+                match self.board[y][x].player {
+                    Player::Cross => print_cross(&mut img, x, y),
+                    Player::Nought => print_nought(&mut img, x, y),
+                    _ => (),
+                }
+            }
+        }
+
+        Sixel::init(&mut stdout).unwrap();
+        Sixel::init_color(&mut stdout, 0, SixelColor::Rgb(100, 100, 100)).unwrap();
+        Sixel::init_color(&mut stdout, 1, SixelColor::Rgb(0, 0, 0)).unwrap();
+        img.print(&mut stdout).unwrap();
+        Sixel::deinit(&mut stdout).unwrap();
     }
 
     /// Print who's turn it is
